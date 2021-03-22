@@ -123,7 +123,7 @@
 #endif
 
 /*
- * IDs of AGL measurment modules that can be loaded (sonars, lidars,...) (message 2)
+ * IDs of AGL measurment modules that can be loaded (sonars,...) (message 2)
  */
 #ifndef AGL_SONAR_ADC_ID
 #define AGL_SONAR_ADC_ID 1
@@ -169,18 +169,6 @@
 #define AGL_LIDAR_TFMINI_ID 11
 #endif
 
-#ifndef AGL_VL53L1X_ID
-#define AGL_VL53L1X_ID 12
-#endif
-
-#ifndef AGL_SONAR_PWM_ID
-#define AGL_SONAR_PWM_ID 13
-#endif
-
-#ifndef AGL_LIDAR_TFMINI_I2C_ID
-#define AGL_LIDAR_TFMINI_I2C_ID 14
-#endif
-
 /*
  * IDs of magnetometer sensors (including IMUs with mag)
  */
@@ -191,10 +179,6 @@
 
 #ifndef MAG_LIS3MDL_SENDER_ID
 #define MAG_LIS3MDL_SENDER_ID 3
-#endif
-
-#ifndef MAG_IST8310_SENDER_ID
-#define MAG_IST8310_SENDER_ID 4
 #endif
 
 #ifndef IMU_MAG_PITOT_ID
@@ -355,10 +339,6 @@
 #define FLOW_OPTICFLOW_ID 1
 #endif
 
-#ifndef FLOW_OPTICFLOW_PMW3901_ID
-#define FLOW_OPTICFLOW_PMW3901_ID 2
-#endif
-
 /*
  * IDs of VELOCITY estimates (message 12)
  */
@@ -376,10 +356,6 @@
 
 #ifndef VEL_STEREOCAM_ID
 #define VEL_STEREOCAM_ID 4
-#endif
-
-#ifndef VEL_OPTICFLOW_PMW3901_ID
-#define VEL_OPTICFLOW_PMW3901_ID 5
 #endif
 
 /*
@@ -430,10 +406,6 @@
 #define OBS_DETECTION_RANGE_ARRAY_NPS_ID 3
 #endif
 
-#ifndef OBS_DETECTION_MULTI_RANGER_DECK_ID
-#define OBS_DETECTION_MULTI_RANGER_DECK_ID 4
-#endif
-
 /*
  * ID's of forcefield generating type functions
  */
@@ -480,11 +452,19 @@
 #define COLOR_OBJECT_DETECTION2_ID 2
 #endif
 
+#ifndef COLOR_OBJECT_DETECTION3_ID
+#define COLOR_OBJECT_DETECTION3_ID 3
+#endif
+
 /*
  * JOYSTICK message (used for payload or control, but not as a RC)
  */
 #ifndef JOYSTICK_ID
 #define JOYSTICK_ID 1
+#endif
+
+#ifndef BUFFER_ID_T
+#define BUFFER_ID_T 1
 #endif
 
 #endif /* ABI_SENDER_IDS_H */
