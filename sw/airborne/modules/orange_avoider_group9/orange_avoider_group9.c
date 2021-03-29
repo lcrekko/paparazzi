@@ -79,8 +79,8 @@ int16_t n_trajectory_confidence = 2;            // Number of readings before swi
 int16_t n_turning_confidence = 3;               // Induce turn after this many frames of confidence
 
 
-#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID2
-#define ORANGE_AVOIDER_VISUAL_DETECTION_ID2 ABI_BROADCAST
+#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID
+#define ORANGE_AVOIDER_VISUAL_DETECTION_ID ABI_BROADCAST
 #endif
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID3
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID3 ABI_BROADCAST
@@ -119,7 +119,7 @@ void orange_avoider_init(void)
 
     // bind our colorfilter callbacks to receive the color filter outputs
     AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &green_color_detection_ev, green_color_detection_cb);
-    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID2, &orange_color_detection_ev, orange_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID3, &orange_color_detection_ev, orange_color_detection_cb);
 
 }
 
