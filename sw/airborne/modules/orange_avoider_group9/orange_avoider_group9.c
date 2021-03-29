@@ -40,7 +40,9 @@
 #define VERBOSE_PRINT(...)
 #endif
 
+
 uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
+uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
 uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
 uint8_t increase_nav_heading(float incrementDegrees);
 uint8_t chooseIncrementAvoidance(void);
@@ -62,25 +64,26 @@ uint32_t orange_color_count = 0;                // orange color count from color
 int16_t obstacle_free_confidence = 0;           // a measure of how certain we are that the way ahead is safe.
 int16_t left_free_confidence = 0;
 int16_t right_free_confidence = 0;
-float heading_increment = 5.f;                  // heading angle increment [deg]
-float heading_increment_flight = 5.f;           // heading angle flight increment [deg]
+float heading_increment = 12.f;                  // heading angle increment [deg]
+float heading_increment_flight = 12.f;           // heading angle flight increment [deg]
 float maxDistance = 1.25;//2.25;                // max waypoint displacement [m]
 
 float central_coefficient = 0.35;               // Weight given to the central part of the image
 
 float green_color_count_frac  = 0.03f;          // SENSITIVITY TO GREEN; LOWER VALUES MAKE IT LESS CAREFUL
-float orange_color_count_frac = 0.15f;          // SENSITIVITY TO ORANGE; HIGHER VALUES MAKE IT LESS CAREFUL
+float orange_color_count_frac = 0.13f;          // SENSITIVITY TO ORANGE; HIGHER VALUES MAKE IT LESS CAREFUL
 
 int16_t max_trajectory_confidence = 5;          // max number of consecutive negative object detections to be sure we are obstacle free
 
 int16_t n_trajectory_confidence = 2;            // Number of readings before switching to SAFE
 int16_t n_turning_confidence = 3;               // Induce turn after this many frames of confidence
 
-#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID
-#define ORANGE_AVOIDER_VISUAL_DETECTION_ID ABI_BROADCAST
-#endif
+
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID2
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID2 ABI_BROADCAST
+#endif
+#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID3
+#define ORANGE_AVOIDER_VISUAL_DETECTION_ID3 ABI_BROADCAST
 #endif
 
 static abi_event green_color_detection_ev;      // Event for green colour filter
@@ -138,7 +141,7 @@ void orange_avoider_periodic(void)
     int32_t orange_color_count_threshold = orange_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
     // update our safe confidence using color thresholds
-    if(green_color_count > green_color_count_threshold && orange_color_count < orange_color_count_threshold){
+    if(orange_color_count < orange_color_count_threshold){
         obstacle_free_confidence++;
     } else {
         obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
@@ -212,11 +215,20 @@ void orange_avoider_periodic(void)
             }
             break;
         case OUT_OF_BOUNDS:
-            printf("OUT OF BOUNDS\n");
-            navigation_state = SEARCH_FOR_SAFE_HEADING;
+      increase_nav_heading(heading_increment);
+      moveWaypointForward(WP_TRAJECTORY, 1.5f);
 
-            break;
+      if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
+        // add offset to head back into arena
+        increase_nav_heading(heading_increment);
 
+        // reset safe counter
+        obstacle_free_confidence = 0;
+
+        // ensure direction is safe before continuing
+        navigation_state = SEARCH_FOR_SAFE_HEADING;   
+     }
+      break;
         default:
             printf("DEFAULT\n");
             break;
@@ -249,7 +261,7 @@ uint8_t increase_nav_heading(float incrementDegrees)
 /*
  * Calculates coordinates of a distance of 'distanceMeters' forward w.r.t. current position and heading
  */
-static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters)
+uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters)
 {
     float heading  = stateGetNedToBodyEulers_f()->psi;
 
