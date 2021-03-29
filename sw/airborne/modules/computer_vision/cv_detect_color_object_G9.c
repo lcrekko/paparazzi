@@ -69,7 +69,7 @@ uint8_t cod_cb_max2 = 0;
 uint8_t cod_cr_min2 = 0;
 uint8_t cod_cr_max2 = 0;
 
-uint8_t cod_lum_min3 = 0;% green
+uint8_t cod_lum_min3 = 0;
 uint8_t cod_lum_max3 = 0;
 uint8_t cod_cb_min3 = 0;
 uint8_t cod_cb_max3 = 0;
@@ -90,11 +90,11 @@ struct color_object_t global_filters[3];
 
 uint8_t first = 0;
 
-
 uint32_t left_green_count = 0;
 uint32_t right_green_count = 0;
 uint32_t left_orange_count = 0;
 uint32_t right_orange_count = 0;
+
 
 int32_t x_c_g, y_c_g, x_c_o, y_c_o, x_c_g_L, y_c_g_L, x_c_g_R, y_c_g_R, x_c_o_L, y_c_o_L, x_c_o_R, y_c_o_R;
 
@@ -121,6 +121,9 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
     uint8_t lum_min_2, lum_max_2;
     uint8_t cb_min_2, cb_max_2;
     uint8_t cr_min_2, cr_max_2;
+    uint8_t lum_min_3, lum_max_3;
+    uint8_t cb_min_3, cb_max_3;
+    uint8_t cr_min_3, cr_max_3;
     bool draw;
 
     switch (filter) {
@@ -162,23 +165,34 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
 
     // Filter and find centroid of green and orange colours in centre, left and right parts of image.
 
+
     // Left:
     //      -Green:  Bottom 50% of image;   left 25% of image;  total 12.5% of image
     //      -Orange: Bottom 50% of image;   left 25% of image;  total 12.5% of image
-    left_green_count = find_object_centroid(img, &x_c_g_L, &y_c_g_L, draw, lum_min, lum_max, cb_min, cb_max, cr_min,
-                                            cr_max, 0, (uint16_t)(img->w / 2), 0, (uint16_t)(img->h / 4));
-    left_orange_count = find_object_centroid(img, &x_c_o_L, &y_c_o_L, draw, lum_min_2, lum_max_2, cb_min_2, cb_max_2,
+    uint32_t left_orange_count = find_object_centroid(img, &x_c_o_L, &y_c_o_L, draw, lum_min_2, lum_max_2, cb_min_2, cb_max_2,
                                              cr_min_2, cr_max_2, 0, (uint16_t)(img->w / 2), 0, (uint16_t)(img->h / 4));
+    uint32_t left_green_count = find_object_centroid(img, &x_c_g_L, &y_c_g_L, draw, lum_min_3, lum_max_3, cb_min_3, cb_max_3, cr_min_3,
+                                            cr_max_3, 0, (uint16_t)(img->w / 2), 0, (uint16_t)(img->h / 4));
 
     // Right:
     //      -Green:  Bottom 50% of image;   right 25% of image; total 12.5% of image
     //      -Orange: Bottom 50% of image;   right 25% of image; total 12.5% of image
-    right_green_count = find_object_centroid(img, &x_c_g_R, &y_c_g_R, draw, lum_min, lum_max, cb_min, cb_max, cr_min,
-                                             cr_max, 0, (uint16_t)(img->w / 2), (uint16_t)(3 * img->h / 4),
-                                             (uint16_t)(img->h));
-    right_orange_count = find_object_centroid(img, &x_c_o_R, &y_c_o_R, draw, lum_min_2, lum_max_2, cb_min_2, cb_max_2,
+    uint32_t right_orange_count = find_object_centroid(img, &x_c_o_R, &y_c_o_R, draw, lum_min_2, lum_max_2, cb_min_2, cb_max_2,
                                               cr_min_2, cr_max_2, 0, (uint16_t)(img->w / 2), (uint16_t)(3 * img->h / 4),
                                               (uint16_t)(img->h));
+    uint32_t right_green_count = find_object_centroid(img, &x_c_g_R, &y_c_g_R, draw, lum_min_3, lum_max_3, cb_min_3, cb_max_3, cr_min_3,
+                                             cr_max_3, 0, (uint16_t)(img->w / 2), (uint16_t)(3 * img->h / 4),
+                                             (uint16_t)(img->h));
+
+    uint32_t green_color_count = find_object_centroid(img, &x_c_g, &y_c_g, draw, lum_min_3, lum_max_3, cb_min_3, cb_max_3,
+                                                        cr_min_3, cr_max_3, 0, (uint16_t)(img->w / 2),
+                                                        (uint16_t)(img->h / 4), (uint16_t)(3 * img->h / 4));
+    uint32_t orange_color_count = find_object_centroid(img, &x_c_o, &y_c_o, draw, lum_min_2, lum_max_2, cb_min_2,
+                                                         cb_max_2, cr_min_2, cr_max_2, 0, (uint16_t)(7 * img->w / 8),
+                                                         (uint16_t)(img->h / 4), (uint16_t)(3 * img->h / 4));
+
+
+    pthread_mutex_lock(&mutex);
 
     global_filters[filter - 1].color_count = left_orange_count;
     global_filters[filter - 1].x_c = x_c_o_L;
@@ -195,6 +209,14 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
     global_filters[filter - 4].color_count = right_green_count;
     global_filters[filter - 4].x_c = x_c_o_R;
     global_filters[filter - 4].y_c = y_c_o_R;
+    global_filters[filter - 4].updated = true;
+    global_filters[filter - 4].color_count = orange_color_count;
+    global_filters[filter - 4].x_c = x_c_o;
+    global_filters[filter - 4].y_c = y_c_o;
+    global_filters[filter - 4].updated = true;
+    global_filters[filter - 4].color_count = green_color_count;
+    global_filters[filter - 4].x_c = x_c_g;
+    global_filters[filter - 4].y_c = y_c_g;
     global_filters[filter - 4].updated = true;
     pthread_mutex_unlock(&mutex);
 
@@ -381,6 +403,22 @@ void color_object_detector_periodic(void) {
         local_filters[4].updated = false;
 
     }
+    
+        if (local_filters[5].updated) {
+        AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION6_ID, local_filters[5].x_c, local_filters[5].y_c,
+                                   0, 0, local_filters[5].color_count, 5);
+        local_filters[5].updated = false;
+
+    }
+
+   
+        if (local_filters[6].updated) {
+        AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION7_ID, local_filters[6].x_c, local_filters[6].y_c,
+                                   0, 0, local_filters[6].color_count, 6);
+        local_filters[6].updated = false;
+
+    }
+
 
 
 }
