@@ -72,7 +72,6 @@ float orange_color_count_frac = 0.18f;          // SENSITIVITY TO ORANGE; HIGHER
 int16_t max_trajectory_confidence = 5;          // max number of consecutive negative object detections to be sure we are obstacle free
 
 int16_t n_trajectory_confidence = 2;            // Number of readings before switching to SAFE
-int16_t n_turning_confidence = 3;               // Induce turn after this many frames of confidence
 
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID2
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID2 ABI_BROADCAST
