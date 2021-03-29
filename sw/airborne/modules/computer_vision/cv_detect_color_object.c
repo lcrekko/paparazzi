@@ -90,13 +90,13 @@ struct color_object_t global_filters[3];
 
 uint8_t first = 0;
 
-
 uint32_t left_green_count = 0;
 uint32_t right_green_count = 0;
 uint32_t left_orange_count = 0;
 uint32_t right_orange_count = 0;
 
-int32_t x_c_g, y_c_g, x_c_o, y_c_o, x_c_g_L, y_c_g_L, x_c_g_R, y_c_g_R, x_c_o_L, y_c_o_L, x_c_o_R, y_c_o_R;
+
+int32_t x_c_g, y_c_g, x_c_o, y_c_o,x_c_g_L, y_c_g_L, x_c_g_R, y_c_g_R, x_c_o_L, y_c_o_L, x_c_o_R, y_c_o_R;
 
 // Function
 uint32_t find_object_centroid(struct image_t *img, int32_t *p_xc, int32_t *p_yc, bool draw,
@@ -147,12 +147,12 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
             cb_max = cod_cb_max2;
             cr_min = cod_cr_min2;
             cr_max = cod_cr_max2;
-//      lum_min_2 = cod_lum_min3;
-//      lum_max_2 = cod_lum_max3;
-//      cb_min_2 = cod_cb_min3;
-//      cb_max_2 = cod_cb_max3;
-//      cr_min_2 = cod_cr_min3;
-//      cr_max_2 = cod_cr_max3;
+            //lum_min_2 = cod_lum_min3;
+            //lum_max_2 = cod_lum_max3;
+            //cb_min_2 = cod_cb_min3;
+            //cb_max_2 = cod_cb_max3;
+            //cr_min_2 = cod_cr_min3;
+            //cr_max_2 = cod_cr_max3;
 
             draw = cod_draw2;
             break;
@@ -250,8 +250,8 @@ void color_object_detector_init(void) {
     cod_cb_max2 = COLOR_OBJECT_DETECTOR_CB_MAX2;
     cod_cr_min2 = COLOR_OBJECT_DETECTOR_CR_MIN2;
     cod_cr_max2 = COLOR_OBJECT_DETECTOR_CR_MAX2;
-  //#endif
-  //  #ifdef COLOR_OBJECT_DETECTOR_LUM_MIN3
+//#endif
+//#ifdef COLOR_OBJECT_DETECTOR_LUM_MIN3
     cod_lum_min3 = COLOR_OBJECT_DETECTOR_LUM_MIN3;
     cod_lum_max3 = COLOR_OBJECT_DETECTOR_LUM_MAX3;
     cod_cb_min3 = COLOR_OBJECT_DETECTOR_CB_MIN3;
