@@ -17,7 +17,7 @@
  * so you have to define which filter to use with the ORANGE_AVOIDER_VISUAL_DETECTION_ID setting.
  */
 
-#include "modules/orange_avoider_group8/orange_avoider_group8.h"
+#include "modules/orange_avoider_group9/orange_avoider_group9.h"
 #include "firmwares/rotorcraft/navigation.h"
 #include "generated/airframe.h"
 #include "state.h"
@@ -41,6 +41,7 @@
 #endif
 
 uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
+uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
 uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
 uint8_t increase_nav_heading(float incrementDegrees);
 uint8_t chooseIncrementAvoidance(void);
@@ -70,8 +71,11 @@ float green_color_count_frac  = 0.03f;          // SENSITIVITY TO GREEN; LOWER V
 float orange_color_count_frac = 0.18f;          // SENSITIVITY TO ORANGE; HIGHER VALUES MAKE IT LESS CAREFUL
 
 int16_t max_trajectory_confidence = 5;          // max number of consecutive negative object detections to be sure we are obstacle free
+float central_coefficient = 0.35;               // Weight given to the central part of the image
+int16_t n_turning_confidence = 3;               // Induce turn after this many frames of confidence
 
 int16_t n_trajectory_confidence = 2;            // Number of readings before switching to SAFE
+
 
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID2
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID2 ABI_BROADCAST
@@ -85,11 +89,19 @@ int16_t n_trajectory_confidence = 2;            // Number of readings before swi
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID5
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID5 ABI_BROADCAST
 #endif
+#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID6
+#define ORANGE_AVOIDER_VISUAL_DETECTION_ID6 ABI_BROADCAST
+#endif
+#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID7
+#define ORANGE_AVOIDER_VISUAL_DETECTION_ID7 ABI_BROADCAST
+#endif
 
 static abi_event left_orange_color_detection_ev;      // Event for left orange colour filter
 static abi_event right_orange_color_detection_ev;     // Event for right orange colour filter
 static abi_event left_green_color_detection_ev;      // Event for left green colour filter
 static abi_event right_green_color_detection_ev;     // Event for right green colour filter
+static abi_event orange_color_detection_ev;      // Event for orange colour filter
+static abi_event green_color_detection_ev;      // Event for green colour filter
 
 static void left_orange_color_detection_cb(uint8_t __attribute__((unused)) sender_id,
                                int16_t __attribute__((unused)) pixel_x, int16_t __attribute__((unused)) pixel_y,
@@ -126,6 +138,22 @@ static void right_green_color_detection_cb(uint8_t __attribute__((unused)) sende
     right_green_count = quality;
 
 }
+static void orange_color_detection_cb(uint8_t __attribute__((unused)) sender_id,
+                                     int16_t __attribute__((unused)) pixel_x, int16_t __attribute__((unused)) pixel_y,
+                                     int16_t __attribute__((unused)) pixel_width, int16_t __attribute__((unused)) pixel_height,
+                                     int32_t quality, int16_t __attribute__((unused)) extra)
+{
+    orange_color_count = quality;
+
+}
+static void green_color_detection_cb(uint8_t __attribute__((unused)) sender_id,
+                                     int16_t __attribute__((unused)) pixel_x, int16_t __attribute__((unused)) pixel_y,
+                                     int16_t __attribute__((unused)) pixel_width, int16_t __attribute__((unused)) pixel_height,
+                                     int32_t quality, int16_t __attribute__((unused)) extra)
+{
+    green_color_count = quality;
+
+}
 
 
 /*
@@ -138,8 +166,12 @@ void orange_avoider_init(void)
     chooseIncrementAvoidance();
 
     // bind our colorfilter callbacks to receive the color filter outputs
-    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &green_color_detection_ev, green_color_detection_cb);
-    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID2, &orange_color_detection_ev, orange_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID2, &left_orange_color_detection_ev, left_orange_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID3, &right_orange_color_detection_ev, right_orange_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID4, &left_green_color_detection_ev, left_green_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID5, &right_green_color_detection_ev, right_green_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID6, &green_color_detection_ev, green_color_detection_cb);
+    AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID7, &orange_color_detection_ev, orange_color_detection_cb);
 
 }
 
@@ -245,8 +277,7 @@ uint8_t increase_nav_heading(float incrementDegrees)
 
 /*
  * Calculates coordinates of distance forward and sets waypoint 'waypoint' to those coordinates
-
-  */
+*/
 uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters)
 {
     struct EnuCoor_i new_coor;
@@ -258,7 +289,7 @@ uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters)
 /*
  * Calculates coordinates of a distance of 'distanceMeters' forward w.r.t. current position and heading
  */
-static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters)
+uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters)
 {
     float heading  = stateGetNedToBodyEulers_f()->psi;
 
@@ -281,7 +312,6 @@ uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor)
 }
 
 /*
-
  * Sets the variable 'heading_increment' positive/negative based on the amount of pixels to the left/right
  */
 uint8_t chooseIncrementAvoidance(void)
