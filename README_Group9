@@ -5,7 +5,7 @@ The paparazzi files edited by 2021_Group9 are listed as follows:
 -sw/airborne/modules/computer_vision/cv_detect_color_object.h  
 -sw/airborne/modules/computer_vision/colorfilter.c
 -sw/airborne/modules/computer_vision/colorfilter.h
--sw/airborne/modules/subsystems/abi_sender_ids.h  
+-sw/airborne/subsystems/abi_sender_ids.h  
 -conf/airframes/tudelft/bebop_course2021_orangeavoid_group9.xml
 -conf/modules/cv_detect_color_object.xml
 -conf/modules/orange_avoider_group9.xml  
