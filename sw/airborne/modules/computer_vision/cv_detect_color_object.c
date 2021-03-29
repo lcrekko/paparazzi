@@ -165,10 +165,10 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
     //      -Green:  Bottom 50% of image;   centered 50% of image;  total 25% of image
     //      -Orange: Bottom 87.5% of image; centered 50% of image;  total 43.75% of image
     uint32_t central_green_count = find_object_centroid(img, &x_c_g, &y_c_g, draw, lum_min, lum_max, cb_min, cb_max,
-                                                        cr_min, cr_max, 0, (uint16_t)(img->w / 2),
+                                                        cr_min, cr_max,0, (uint16_t)(img->w / 2),
                                                         (uint16_t)(img->h / 4), (uint16_t)(3 * img->h / 4));
     uint32_t central_orange_count = find_object_centroid(img, &x_c_o, &y_c_o, draw, lum_min_2, lum_max_2, cb_min_2,
-                                                         cb_max_2, cr_min_2, cr_max_2, 0, (uint16_t)(7 * img->w / 8),
+                                                         cb_max_2, cr_min_2, cr_max_2,0, (uint16_t)(7 * img->w / 8),
                                                          (uint16_t)(img->h / 4), (uint16_t)(3 * img->h / 4));
 
 
@@ -196,10 +196,10 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter) {
     global_filters[filter - 1].x_c = x_c_g;
     global_filters[filter - 1].y_c = y_c_g;
     global_filters[filter - 1].updated = true;
-    global_filters[2].color_count = central_orange_count;
-    global_filters[2].x_c = x_c_o;
-    global_filters[2].y_c = y_c_o;
-    global_filters[2].updated = true;
+    global_filters[filter - 1].color_count = central_orange_count;
+    global_filters[filter - 1].x_c = x_c_o;
+    global_filters[filter - 1].y_c = y_c_o;
+    global_filters[filter - 1].updated = true;
     pthread_mutex_unlock(&mutex);
 
     return img;
