@@ -137,7 +137,6 @@ void orange_avoider_periodic(void)
     }
 
     // compute current color thresholds
-    int32_t green_color_count_threshold  = green_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
     int32_t orange_color_count_threshold = orange_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
     // update our safe confidence using color thresholds
