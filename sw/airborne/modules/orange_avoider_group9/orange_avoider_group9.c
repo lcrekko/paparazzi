@@ -171,7 +171,7 @@ void orange_avoider_periodic(void)
     // If obstacle_free_confidence < 0, set to 0, if obstacle_free_confidence > max, set to max
     Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
-    float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
+    float moveDistance = fminf(maxDistance, 0.3f * obstacle_free_confidence);
 
     switch (navigation_state){
         case SAFE:
