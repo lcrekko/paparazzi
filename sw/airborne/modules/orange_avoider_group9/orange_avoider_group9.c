@@ -215,7 +215,7 @@ void orange_avoider_periodic(void)
             break;
         case OUT_OF_BOUNDS:
       increase_nav_heading(heading_increment);
-      moveWaypointForward(WP_TRAJECTORY, 2.05f);
+      moveWaypointForward(WP_TRAJECTORY, 1.85f);
 
       if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
         // add offset to head back into arena
